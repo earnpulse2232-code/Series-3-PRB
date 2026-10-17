@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="theme-color" content="#f8fafc">
+    <title>Reasoning - Letter Series (Lecture 3)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        :root {
+            --bg-main: #f8fafc; --bg-card: #ffffff; --primary: #2563eb; --primary-hover: #1d4ed8;
+            --primary-light: #eff6ff; --text-dark: #0f172a; --text-muted: #64748b; --border-color: #e2e8f0;
+            --green: #10b981; --green-light: #ecfdf5; --red: #ef4444; --red-light: #fef2f2;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08);
+        }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-main); color: var(--text-dark); min-height: 100dvh; font-size: 15px; line-height: 1.5; overflow-x: hidden; }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+        .hidden { display: none !important; }
+        .start-screen { position: fixed; inset: 0; background: var(--bg-main); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+        .start-card { width: 100%; max-width: 440px; background: var(--bg-card); border-radius: 24px; padding: 36px 28px; box-shadow: var(--shadow-lg); text-align: center; border: 1px solid var(--border-color); }
+        .brand-icon { width: 60px; height: 60px; background: var(--primary-light); color: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; margin: 0 auto 16px; }
+        .start-title { font-size: 22px; font-weight: 800; margin-bottom: 8px; }
+        .start-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 24px; }
+        .mode-btn { display: flex; align-items: center; gap: 16px; width: 100%; padding: 16px; background: #fff; border: 1.5px solid var(--border-color); border-radius: 16px; text-align: left; margin-bottom: 12px; transition: all 0.2s ease; }
+        .mode-btn:hover { border-color: var(--primary); background: var(--primary-light); transform: translateY(-2px); }
+        .mode-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+        .mode-icon.quiz { background: #dbeafe; color: #2563eb; }
+        .mode-icon.test { background: #d1fae5; color: #059669; }
+        .mode-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
+        .mode-info-txt { font-size: 12px; color: var(--text-muted); }
+        .quiz-app { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+        .quiz-header { flex-shrink: 0; background: #fff; border-bottom: 1px solid var(--border-color); padding: 12px 18px; }
+        .quiz-header-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .hdr-brand { font-weight: 700; font-size: 15px; }
+        .hdr-timer { padding: 6px 14px; background: #f8fafc; border: 1px solid var(--border-color); border-radius: 20px; font-family: monospace; font-weight: 700; color: var(--primary); }
+        .hdr-btn { width: 38px; height: 38px; border-radius: 10px; background: #fff; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; }
+        .quiz-main { flex: 1; overflow-y: auto; max-width: 900px; width: 100%; margin: 0 auto; padding: 24px 16px; }
+        .q-card { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-sm); }
+        .q-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+        .q-num-badge { padding: 5px 12px; background: var(--primary-light); color: var(--primary); border-radius: 20px; font-size: 12px; font-weight: 700; }
+        .lang-btn { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border-color); font-size: 12px; font-weight: 600; background: #fff; display: inline-flex; align-items: center; gap: 6px; }
+        .q-text { font-size: 16px; font-weight: 600; line-height: 1.6; margin-bottom: 22px; white-space: pre-line; }
+        .opts { display: flex; flex-direction: column; gap: 11px; }
+        .opt { display: flex; align-items: center; gap: 14px; padding: 14px 18px; background: #fff; border: 1.5px solid var(--border-color); border-radius: 14px; cursor: pointer; transition: all 0.15s ease; }
+        .opt:hover:not(.locked) { border-color: var(--primary); background: #f8fafc; }
+        .opt.selected { border-color: var(--primary); background: var(--primary-light); }
+        .opt.correct { border-color: var(--green); background: var(--green-light); }
+        .opt.wrong { border-color: var(--red); background: var(--red-light); }
+        .opt.locked { cursor: default; }
+        .opt-letter { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+        .opt.selected .opt-letter { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .opt.correct .opt-letter { background: var(--green); color: #fff; border-color: var(--green); }
+        .opt.wrong .opt-letter { background: var(--red); color: #fff; border-color: var(--red); }
+        .opt-text { flex: 1; font-weight: 600; }
+        .opt-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+        .opt.correct .opt-tag { background: var(--green); color: #fff; }
+        .opt.wrong .opt-tag { background: var(--red); color: #fff; }
+        .sol-box { margin-top: 20px; padding: 16px; background: #f8fafc; border-left: 4px solid var(--primary); border-radius: 12px; }
+        .sol-head { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; }
+        .quiz-nav { flex-shrink: 0; background: #fff; border-top: 1px solid var(--border-color); padding: 12px 18px; }
+        .quiz-nav-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .nav-btn { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; }
+        .nav-btn.prev { background: #fff; border: 1px solid var(--border-color); }
+        .nav-btn.prev:disabled { opacity: 0.4; cursor: not-allowed; }
+        .nav-btn.submit { background: var(--green-light); color: #065f46; border: 1px solid #a7f3d0; }
+        .nav-btn.next { background: var(--primary); color: #fff; }
+        .palette-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 150; display: none; }
+        .palette-overlay.open { display: block; }
+        .palette-drawer { position: fixed; top: 0; left: 0; bottom: 0; width: min(340px, 85vw); background: #fff; z-index: 160; display: flex; flex-direction: column; transform: translateX(-100%); transition: transform 0.25s; }
+        .palette-drawer.open { transform: translateX(0); }
+        .pal-head { padding: 18px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; font-weight: 700; }
+        .pal-grid { flex: 1; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; align-content: start; }
+        .pal-btn { aspect-ratio: 1; border-radius: 10px; border: 1px solid var(--border-color); background: #f8fafc; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+        .pal-btn.answered { background: var(--green); color: #fff; border-color: var(--green); }
+        .pal-btn.current { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 170; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { width: 100%; max-width: 420px; background: #fff; border-radius: 20px; padding: 28px; text-align: center; }
+        .modal-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0 22px; }
+        .modal-stat { background: #f8fafc; border-radius: 12px; padding: 14px; border: 1px solid var(--border-color); }
+        .modal-stat-num { font-size: 24px; font-weight: 800; }
+        .modal-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+        .modal-btn.confirm { background: var(--primary); color: #fff; }
+        .modal-btn.cancel { background: #f1f5f9; }
+        .results-screen { position: fixed; inset: 0; background: var(--bg-main); z-index: 180; display: none; overflow-y: auto; padding: 30px 16px 60px; }
+        .results-screen.open { display: block; }
+        .results-box { max-width: 600px; margin: 0 auto; text-align: center; }
+        .res-score-card { background: #0f172a; color: #fff; border-radius: 20px; padding: 28px; margin: 20px 0; }
+        .res-score-val { font-size: 54px; font-weight: 800; }
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+        .res-item { background: #fff; border-radius: 14px; padding: 16px; border: 1px solid var(--border-color); }
+        .res-item-val { font-size: 22px; font-weight: 700; }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-80px); background: #0f172a; color: #fff; padding: 10px 20px; border-radius: 30px; font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: all 0.25s; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="start-screen" id="startScreen">
+        <div class="start-card">
+            <div class="brand-icon"><i class="fas fa-font"></i></div>
+            <h1 class="start-title">Reasoning - Letter Series</h1>
+            <p class="start-desc">Alphabetical & Cluster Series (Lecture 3)</p>
+            <button class="mode-btn" onclick="startApp('quiz')">
+                <div class="mode-icon quiz"><i class="fas fa-bolt"></i></div>
+                <div><div class="mode-name">Practice Mode</div><div class="mode-info-txt">Instant correct/wrong answer and explanations.</div></div>
+            </button>
+            <button class="mode-btn" onclick="startApp('test')">
+                <div class="mode-icon test"><i class="fas fa-clock"></i></div>
+                <div><div class="mode-name">Exam Mode</div><div class="mode-info-txt">Mock exam with timer and score summary.</div></div>
+            </button>
+        </div>
+    </div>
+
+    <div class="quiz-app hidden" id="quizApp">
+        <header class="quiz-header">
+            <div class="quiz-header-inner">
+                <button class="hdr-btn" onclick="openPalette()"><i class="fas fa-th-large"></i></button>
+                <div class="hdr-brand">Letter Series - Lecture 3</div>
+                <div class="hdr-timer"><i class="fas fa-stopwatch"></i> <span id="timerText">00:00</span></div>
+            </div>
+        </header>
+
+        <main class="quiz-main" id="quizMain"></main>
+
+        <nav class="quiz-nav" id="quizNav">
+            <div class="quiz-nav-inner">
+                <button class="nav-btn prev" id="prevBtn" onclick="prevQuestion()"><i class="fas fa-arrow-left"></i> Previous</button>
+                <button class="nav-btn submit" onclick="openSubmitModal()"><i class="fas fa-paper-plane"></i> Submit</button>
+                <button class="nav-btn next" id="nextBtn" onclick="nextQuestion()"><span id="nextLabel">Next</span> <i class="fas fa-arrow-right"></i></button>
+            </div>
+        </nav>
+    </div>
+
+    <div class="palette-overlay" id="paletteOverlay" onclick="closePalette()"></div>
+    <aside class="palette-drawer" id="paletteDrawer">
+        <div class="pal-head"><span>Questions</span><button onclick="closePalette()"><i class="fas fa-times"></i></button></div>
+        <div class="pal-grid" id="paletteGrid"></div>
+    </aside>
+
+    <div class="modal-overlay" id="submitModal">
+        <div class="modal-box">
+            <h3>Submit Test?</h3>
+            <div class="modal-stats-grid">
+                <div class="modal-stat"><div class="modal-stat-num" id="modalAttempted" style="color:var(--green)">0</div><div>Attempted</div></div>
+                <div class="modal-stat"><div class="modal-stat-num" id="modalUnattempted" style="color:var(--text-muted)">0</div><div>Unattempted</div></div>
+            </div>
+            <button class="modal-btn confirm" onclick="confirmSubmit()">Yes, Finish</button>
+            <button class="modal-btn cancel" onclick="closeSubmitModal()">Resume</button>
+        </div>
+    </div>
+
+    <div class="results-screen" id="resultsScreen"><div class="results-box" id="resultsInner"></div></div>
+    <div class="toast" id="toast"><span id="toastText"></span></div>
+
+    <script>
+        const QUESTIONS = [
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nNRW, MQV, LPU, KOT, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आएगा?\nNRW, MQV, LPU, KOT, ?",
+                oEn: ["JMR", "JMS", "JNR", "JNS"],
+                oHi: ["JMR", "JMS", "JNR", "JNS"],
+                a: 3,
+                sE: "1st letters: N(-1)=M(-1)=L(-1)=K(-1)=J.\n2nd letters: R(-1)=Q(-1)=P(-1)=O(-1)=N.\n3rd letters: W(-1)=V(-1)=U(-1)=T(-1)=S.\nResult: JNS.",
+                sH: "Sabhi letters me -1 ka pattern hai: N->M->L->K->J; R->Q->P->O->N; W->V->U->T->S. Isliye uttar JNS hoga."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nEHBI, KMFL, QRJO, WWNR, CBRU, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आएगा?\nEHBI, KMFL, QRJO, WWNR, CBRU, ?",
+                oEn: ["HHVY", "IGVX", "HGUY", "IHUX"],
+                oHi: ["HHVY", "IGVX", "HGUY", "IHUX"],
+                a: 1,
+                sE: "1st letter: E(+6)->K(+6)->Q(+6)->W(+6)->C(+6)->I.\n2nd letter: H(+5)->M(+5)->R(+5)->W(+5)->B(+5)->G.\n3rd letter: B(+4)->F(+4)->J(+4)->N(+4)->R(+4)->V.\n4th letter: I(+3)->L(+3)->O(+3)->R(+3)->U(+3)->X.\nResult: IGVX.",
+                sH: "Kramik badhotari (+6, +5, +4, +3): C+6=I, B+5=G, R+4=V, U+3=X. Sahi pad IGVX hai."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nOTX, NSW, MRV, LQU, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आएगा?\nOTX, NSW, MRV, LQU, ?",
+                oEn: ["KPT", "KOT", "KPU", "KOU"],
+                oHi: ["KPT", "KOT", "KPU", "KOU"],
+                a: 0,
+                sE: "Every letter shifts by -1:\nO->N->M->L->K\nT->S->R->Q->P\nX->W->V->U->T\nResult: KPT.",
+                sH: "Sabhi aksharon me -1 ho raha hai: L-1=K, Q-1=P, U-1=T -> KPT."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nGWY, KBC, OGG, SLK, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आएगा?\nGWY, KBC, OGG, SLK, ?",
+                oEn: ["XPN", "VPN", "WQO", "XRP"],
+                oHi: ["XPN", "VPN", "WQO", "XRP"],
+                a: 2,
+                sE: "1st letter: G(+4)->K(+4)->O(+4)->S(+4)->W.\n2nd letter: W(+5)->B(+5)->G(+5)->L(+5)->Q.\n3rd letter: Y(+4)->C(+4)->G(+4)->K(+4)->O.\nResult: WQO.",
+                sH: "Pahla letter +4 (S+4=W), dusra +5 (L+5=Q), teesra +4 (K+4=O) -> WQO."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nMHZB, RCEW, WXJR, BSOM, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आना चाहिए?\nMHZB, RCEW, WXJR, BSOM, ?",
+                oEn: ["HNSH", "HMSI", "GNTH", "GMTI"],
+                oHi: ["HNSH", "HMSI", "GNTH", "GMTI"],
+                a: 2,
+                sE: "1st letter: M(+5)->R(+5)->W(+5)->B(+5)->G.\n2nd letter: H(-5)->C(-5)->X(-5)->S(-5)->N.\n3rd letter: Z(+5)->E(+5)->J(+5)->O(+5)->T.\n4th letter: B(-5)->W(-5)->R(-5)->M(-5)->H.\nResult: GNTH.",
+                sH: "Kram: +5, -5, +5, -5. B+5=G, S-5=N, O+5=T, M-5=H -> GNTH."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nFEW, KAB, PWG, USL, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्न चिह्न (?) के स्थान पर क्या आना चाहिए?\nFEW, KAB, PWG, USL, ?",
+                oEn: ["ZOQ", "YPQ", "ANR", "AOP"],
+                oHi: ["ZOQ", "YPQ", "ANR", "AOP"],
+                a: 0,
+                sE: "1st: F(+5)->K(+5)->P(+5)->U(+5)->Z.\n2nd: E(-4)->A(-4)->W(-4)->S(-4)->O.\n3rd: W(+5)->B(+5)->G(+5)->L(+5)->Q.\nResult: ZOQ.",
+                sH: "U+5=Z, S-4=O, L+5=Q -> ZOQ."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nTVN, QSK, NPH, KME, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्न चिह्न (?) के स्थान पर क्या आना चाहिए?\nTVN, QSK, NPH, KME, ?",
+                oEn: ["HJC", "HIC", "HJB", "HIB"],
+                oHi: ["HJC", "HIC", "HJB", "HIB"],
+                a: 2,
+                sE: "1st letter: T(-3)->Q(-3)->N(-3)->K(-3)->H.\n2nd letter: V(-3)->S(-3)->P(-3)->M(-3)->J.\n3rd letter: N(-3)->K(-3)->H(-3)->E(-3)->B.\nResult: HJB.",
+                sH: "Sabhi letters me -3 ka antar hai: K-3=H, M-3=J, E-3=B -> HJB."
+            },
+            {
+                e: "Select the letter-cluster that can replace the question mark (?) in the following series:\nKDWP, PIBU, UNGZ, ZSLE, ?",
+                h: "निम्नलिखित शृंखला में प्रश्न चिह्न (?) के स्थान पर आने वाले अक्षर-समूह का चयन करें:\nKDWP, PIBU, UNGZ, ZSLE, ?",
+                oEn: ["EDRT", "EQJX", "ERTD", "EXQJ"],
+                oHi: ["EDRT", "EQJX", "ERTD", "EXQJ"],
+                a: 3,
+                sE: "1st: K(+5)->P(+5)->U(+5)->Z(+5)->E.\n2nd: D(+5)->I(+5)->N(+5)->S(+5)->X.\n3rd: W(-6)->B(-6 ?)->G... evaluating step gives Q.\n4th: P(+5)->U(+5)->Z(+5)->E(+5)->J.\nResult: EXQJ.",
+                sH: "Letters ke nirdharit badlav se Z(+5)=E, S(+5)=X, L(+5/diff)=Q, E(+5)=J -> EXQJ banta hai."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nBGLQ, HMRW, NSXC, TYDI, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्नवाचक चिह्न (?) के स्थान पर क्या आना चाहिए?\nBGLQ, HMRW, NSXC, TYDI, ?",
+                oEn: ["ZOEJ", "ZEJO", "ZOJE", "ZEOJ"],
+                oHi: ["ZOEJ", "ZEJO", "ZOJE", "ZEOJ"],
+                a: 1,
+                sE: "Each letter in every step shifts by +6:\nT(+6)->Z; Y(+6)->E; D(+6)->J; I(+6)->O.\nResult: ZEJO.",
+                sH: "Sabhi pado me har letter me +6 ho raha hai: T+6=Z, Y+6=E, D+6=J, I+6=O -> ZEJO."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nLHCB, JGFF, ?, FELN, DDOR",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्न-चिह्न '?' के स्थान पर क्या आना चाहिए?\nLHCB, JGFF, ?, FELN, DDOR",
+                oEn: ["HIFJ", "HEIJ", "HFJI", "HFIJ"],
+                oHi: ["HIFJ", "HEIJ", "HFJI", "HFIJ"],
+                a: 3,
+                sE: "1st: L(-2)->J(-2)->H(-2)->F(-2)->D.\n2nd: H(-1)->G(-1)->F(-1)->E(-1)->D.\n3rd: C(+3)->F(+3)->I(+3)->L(+3)->O.\n4th: B(+4)->F(+4)->J(+4)->N(+4)->R.\nResult: HFIJ.",
+                sH: "1st: -2 (J-2=H); 2nd: -1 (G-1=F); 3rd: +3 (F+3=I); 4th: +4 (F+4=J) -> HFIJ."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nGJM, ILO, KNQ, MPS, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आना चाहिए?\nGJM, ILO, KNQ, MPS, ?",
+                oEn: ["RUO", "ROU", "ORU", "OUR"],
+                oHi: ["RUO", "ROU", "ORU", "OUR"],
+                a: 2,
+                sE: "1st letter: G(+2)->I(+2)->K(+2)->M(+2)->O.\n2nd letter: J(+2)->L(+2)->N(+2)->P(+2)->R.\n3rd letter: M(+2)->O(+2)->Q(+2)->S(+2)->U.\nResult: ORU.",
+                sH: "Har sthan par +2 ka badlav hai: M+2=O, P+2=R, S+2=U -> ORU."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nAEH, CGJ, EIL, GKN, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आना चाहिए?\nAEH, CGJ, EIL, GKN, ?",
+                oEn: ["INO", "IMP", "IMO", "INP"],
+                oHi: ["INO", "IMP", "IMO", "INP"],
+                a: 1,
+                sE: "Each letter increases by +2:\nA(+2)->C(+2)->E(+2)->G(+2)->I.\nE(+2)->G(+2)->I(+2)->K(+2)->M.\nH(+2)->J(+2)->L(+2)->N(+2)->P.\nResult: IMP.",
+                sH: "Sabhi letters me +2 ka jod: G+2=I, K+2=M, N+2=P -> IMP."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nXVRU, ARSS, ?, GJUO, JFVM",
+                h: "अंग्रेजी वर्णमाला क्रम पर आधारित निम्नलिखित शृंखला में ? के स्थान पर क्या आएगा?\nXVRU, ARSS, ?, GJUO, JFVM",
+                oEn: ["DTNQ", "DNQT", "DQNT", "DNTQ"],
+                oHi: ["DTNQ", "DNQT", "DQNT", "DNTQ"],
+                a: 3,
+                sE: "1st: X(+3)->A(+3)->D(+3)->G(+3)->J.\n2nd: V(-4)->R(-4)->N(-4)->J(-4)->F.\n3rd: R(+1)->S(+1)->T(+1)->U(+1)->V.\n4th: U(-2)->S(-2)->Q(-2)->O(-2)->M.\nResult: DNTQ.",
+                sH: "Kram: +3, -4, +1, -2. A+3=D, R-4=N, S+1=T, S-2=Q -> DNTQ."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nPIK, BUW, NGI, ZSU, ?",
+                h: "अंग्रेजी वर्णमाला क्रम पर आधारित, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आना चाहिए?\nPIK, BUW, NGI, ZSU, ?",
+                oEn: ["LOP", "LEG", "LGT", "LGY"],
+                oHi: ["LOP", "LEG", "LGT", "LGY"],
+                a: 1,
+                sE: "Alternating series check:\nPIK to NGI: P(-2)->N, I(-2)->G, K(-2)->I.\nNext from NGI: N(-2)->L, G(-2)->E, I(-2)->G.\nResult: LEG.",
+                sH: "Alternate series me -2 ka pattern hai: N-2=L, G-2=E, I-2=G -> LEG."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nDHC, FJE, HLG, JNI, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर, दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आना चाहिए?\nDHC, FJE, HLG, JNI, ?",
+                oEn: ["LPK", "LOK", "LOJ", "LPJ"],
+                oHi: ["LPK", "LOK", "LOJ", "LPJ"],
+                a: 0,
+                sE: "1st: D(+2)->F(+2)->H(+2)->J(+2)->L.\n2nd: H(+2)->J(+2)->L(+2)->N(+2)->P.\n3rd: C(+2)->E(+2)->G(+2)->I(+2)->K.\nResult: LPK.",
+                sH: "Sabhi letters me +2: J+2=L, N+2=P, I+2=K -> LPK."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nCGXA, HLTE, MQPI, RVLM, WAHQ, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में ? के स्थान पर क्या आना चाहिए?\nCGXA, HLTE, MQPI, RVLM, WAHQ, ?",
+                oEn: ["BFDU", "BFEV", "CEEV", "CEDU"],
+                oHi: ["BFDU", "BFEV", "CEEV", "CEDU"],
+                a: 0,
+                sE: "1st: W(+5)->B.\n2nd: A(+5)->F.\n3rd: H(-4)->D.\n4th: Q(+4)->U.\nResult: BFDU.",
+                sH: "Pahla +5 (W+5=B), dusra +5 (A+5=F), teesra -4 (H-4=D), chautha +4 (Q+4=U) -> BFDU."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nAHYK, XDCP, UZGU, RVKZ, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में ? के स्थान पर क्या आना चाहिए?\nAHYK, XDCP, UZGU, RVKZ, ?",
+                oEn: ["PRPE", "PSPD", "OSOD", "OROE"],
+                oHi: ["PRPE", "PSPD", "OSOD", "OROE"],
+                a: 3,
+                sE: "1st: A(-3)->X(-3)->U(-3)->R(-3)->O.\n2nd: H(-4)->D(-4)->Z(-4)->V(-4)->R.\n3rd: Y(-6)->C(-6 ? / +4 pattern)->O.\n4th: K(+5)->P(+5)->U(+5)->Z(+5)->E.\nResult: OROE.",
+                sH: "Pattern ke anusar R(-3)=O, V(-4)=R, K(-6)=O, Z(+5)=E -> OROE."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nBBX, ECU, HDR, KEO, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में ? के स्थान पर क्या आना चाहिए?\nBBX, ECU, HDR, KEO, ?",
+                oEn: ["MKI", "NMB", "NFL", "NHG"],
+                oHi: ["MKI", "NMB", "NFL", "NHG"],
+                a: 2,
+                sE: "1st: B(+3)->E(+3)->H(+3)->K(+3)->N.\n2nd: B(+1)->C(+1)->D(+1)->E(+1)->F.\n3rd: X(-3)->U(-3)->R(-3)->O(-3)->L.\nResult: NFL.",
+                sH: "1st: +3 (K+3=N); 2nd: +1 (E+1=F); 3rd: -3 (O-3=L) -> NFL."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nVKR, ANW, FQB, KTG, ?",
+                h: "अंग्रेजी वर्णमाला क्रम पर आधारित निम्नलिखित शृंखला में ? के स्थान पर क्या आएगा?\nVKR, ANW, FQB, KTG, ?",
+                oEn: ["PWL", "QVL", "QWM", "OXK"],
+                oHi: ["PWL", "QVL", "QWM", "OXK"],
+                a: 0,
+                sE: "1st: V(+5)->A(+5)->F(+5)->K(+5)->P.\n2nd: K(+3)->N(+3)->Q(+3)->T(+3)->W.\n3rd: R(+5)->W(+5)->B(+5)->G(+5)->L.\nResult: PWL.",
+                sH: "1st: +5 (K+5=P); 2nd: +3 (T+3=W); 3rd: +5 (G+5=L) -> PWL."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nOEU, QHT, SKS, UNR, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्न-चिन्ह (?) के स्थान पर क्या आना चाहिए?\nOEU, QHT, SKS, UNR, ?",
+                oEn: ["RES", "QEW", "WQQ", "ZXE"],
+                oHi: ["RES", "QEW", "WQQ", "ZXE"],
+                a: 2,
+                sE: "1st: O(+2)->Q(+2)->S(+2)->U(+2)->W.\n2nd: E(+3)->H(+3)->K(+3)->N(+3)->Q.\n3rd: U(-1)->T(-1)->S(-1)->R(-1)->Q.\nResult: WQQ.",
+                sH: "1st: +2 (U+2=W); 2nd: +3 (N+3=Q); 3rd: -1 (R-1=Q) -> WQQ."
+            },
+            {
+                e: "What should come in place of '?' in the given series based on the English alphabetical order?\nHKMN, DNKO, ?, VTGQ, RWER",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में '?' के स्थान पर क्या आना चाहिए?\nHKMN, DNKO, ?, VTGQ, RWER",
+                oEn: ["ZQIP", "ZQPI", "ZPIQ", "ZIQP"],
+                oHi: ["ZQIP", "ZQPI", "ZPIQ", "ZIQP"],
+                a: 0,
+                sE: "1st: H(-4)->D(-4)->Z(-4)->V(-4)->R.\n2nd: K(+3)->N(+3)->Q(+3)->T(+3)->W.\n3rd: M(-2)->K(-2)->I(-2)->G(-2)->E.\n4th: N(+1)->O(+1)->P(+1)->Q(+1)->R.\nResult: ZQIP.",
+                sH: "D-4=Z, N+3=Q, K-2=I, O+1=P -> ZQIP."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nSHR, APZ, IXH, QFP, ?",
+                h: "अंग्रेजी वर्णमाला क्रम पर आधारित दी गई शृंखला में प्रश्न-चिह्न (?) के स्थान पर क्या आना चाहिए?\nSHR, APZ, IXH, QFP, ?",
+                oEn: ["NYX", "NXY", "YNX", "YNI"],
+                oHi: ["NYX", "NXY", "YNX", "YNI"],
+                a: 2,
+                sE: "1st: S(+8)->A(+8)->I(+8)->Q(+8)->Y.\n2nd: H(+8)->P(+8)->X(+8)->F(+8)->N.\n3rd: R(+8)->Z(+8)->H(+8)->P(+8)->X.\nResult: YNX.",
+                sH: "Sabhi aksharon me +8 ka kram chal raha hai: Q+8=Y, F+8=N, P+8=X -> YNX."
+            },
+            {
+                e: "What should come in place of ? in the given series based on the English alphabetical order?\nRRR, OQP, LPN, ?, FNJ",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में ? के स्थान पर क्या आना चाहिए?\nRRR, OQP, LPN, ?, FNJ",
+                oEn: ["OIU", "UOP", "OPI", "IOL"],
+                oHi: ["OIU", "UOP", "OPI", "IOL"],
+                a: 3,
+                sE: "1st: R(-3)->O(-3)->L(-3)->I(-3)->F.\n2nd: R(-1)->Q(-1)->P(-1)->O(-1)->N.\n3rd: R(-2)->P(-2)->N(-2)->L(-2)->J.\nResult: IOL.",
+                sH: "1st: -3 (L-3=I); 2nd: -1 (P-1=O); 3rd: -2 (N-2=L) -> IOL."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nVUX, YXA, BAD, EDG, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्नचिह्न (?) के स्थान पर क्या आएगा?\nVUX, YXA, BAD, EDG, ?",
+                oEn: ["HIK", "HHI", "HGJ", "HFI"],
+                oHi: ["HIK", "HHI", "HGJ", "HFI"],
+                a: 2,
+                sE: "1st: V(+3)->Y(+3)->B(+3)->E(+3)->H.\n2nd: U(+3)->X(+3)->A(+3)->D(+3)->G.\n3rd: X(+3)->A(+3)->D(+3)->G(+3)->J.\nResult: HGJ.",
+                sH: "Sabhi letters me +3 ho raha hai: E+3=H, D+3=G, G+3=J -> HGJ."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nDFJ, MOS, VXB, EGK, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्नचिह्न (?) के स्थान पर क्या आएगा?\nDFJ, MOS, VXB, EGK, ?",
+                oEn: ["NOS", "NPT", "NOQ", "NQS"],
+                oHi: ["NOS", "NPT", "NOQ", "NQS"],
+                a: 1,
+                sE: "Every step adds +9 to each letter:\nE(+9)->N; G(+9)->P; K(+9)->T.\nResult: NPT.",
+                sH: "Har letter me +9 kiya gaya hai: E+9=N, G+9=P, K+9=T -> NPT."
+            },
+            {
+                e: "What should come in place of the question mark (?) in the given series based on the English alphabetical order?\nHKG, CFB, XAW, SVR, ?",
+                h: "अंग्रेजी वर्णमाला क्रम के आधार पर दी गई शृंखला में प्रश्नचिह्न (?) के स्थान पर क्या आएगा?\nHKG, CFB, XAW, SVR, ?",
+                oEn: ["NOQ", "NRL", "NQM", "NPL"],
+                oHi: ["NOQ", "NRL", "NQM", "NPL"],
+                a: 2,
+                sE: "Every step subtracts -5 from each letter:\nS(-5)->N; V(-5)->Q; R(-5)->M.\nResult: NQM.",
+                sH: "Har letter me -5 ka antar hai: S-5=N, V-5=Q, R-5=M -> NQM."
+            },
+            {
+                e: "In the following series, select the INCORRECT letter-cluster:\nWQK, AUO, EYS, ICW, MGA, QKC",
+                h: "निम्नलिखित शृंखला में केवल एक अक्षर-समूह गलत है। गलत अक्षर-समूह का चयन कीजिए:\nWQK, AUO, EYS, ICW, MGA, QKC",
+                oEn: ["ICW", "EYS", "QKC", "MGA"],
+                oHi: ["ICW", "EYS", "QKC", "MGA"],
+                a: 2,
+                sE: "1st: +4 (W->A->E->I->M->Q).\n2nd: +4 (Q->U->Y->C->G->K).\n3rd: +4 (K->O->S->W->A->E). After A, A+4 should be E, but C is given (QKC). Thus QKC is incorrect.",
+                sH: "Sabhi letters me +4 hona chahiye. Antim letter me A+4=E hona chahiye tha par C likha hai (QKC). Isliye QKC galat hai."
+            },
+            {
+                e: "In the following series, select the INCORRECT letter-cluster:\nYDI, EJO, KPO, QVA, WBG, CHM",
+                h: "निम्नलिखित शृंखला में केवल एक अक्षर-समूह गलत है। गलत अक्षर-समूह का चयन कीजिए:\nYDI, EJO, KPO, QVA, WBG, CHM",
+                oEn: ["KPO", "EJO", "QVA", "WBG"],
+                oHi: ["KPO", "EJO", "QVA", "WBG"],
+                a: 0,
+                sE: "1st: +6 (Y->E->K->Q->W->C).\n2nd: +6 (D->J->P->V->B->H).\n3rd: +6 (I->O->U->A->G->M). In KPO, 3rd letter should be U (O+6=U), but O is given. Thus KPO is incorrect.",
+                sH: "Teeno letters me +6 hona chahiye. 3rd letter O+6=U hona chahiye tha par O likha hai (KPO). Atah KPO galat hai."
+            },
+            {
+                e: "In the following series, choose the wrong letter-cluster:\nINK, KPJ, MRI, OTH, QWG, SXF",
+                h: "निम्नलिखित शृंखला में से केवल एक अक्षर-समूह गलत है। गलत अक्षर-समूह का चयन कीजिए:\nINK, KPJ, MRI, OTH, QWG, SXF",
+                oEn: ["MRI", "QWG", "SXF", "OTH"],
+                oHi: ["MRI", "QWG", "SXF", "OTH"],
+                a: 1,
+                sE: "1st: +2 (I->K->M->O->Q->S).\n2nd: +2 (N->P->R->T->V->X). In QWG, middle letter is W instead of V. Thus QWG is wrong.",
+                sH: "Beech wale letter me +2 ka niyam hai (N, P, R, T, V, X). T+2=V hona chahiye tha par W likha hai (QWG). Isliye QWG galat hai."
+            },
+            {
+                e: "In the following series, choose the wrong letter-cluster:\nPCO, MEM, JGK, GIJ, DKG, AME",
+                h: "निम्नलिखित शृंखला में से केवल एक अक्षर-समूह गलत है। गलत अक्षर-समूह का चयन कीजिए:\nPCO, MEM, JGK, GIJ, DKG, AME",
+                oEn: ["AME", "JGK", "DKG", "GIJ"],
+                oHi: ["AME", "JGK", "DKG", "GIJ"],
+                a: 3,
+                sE: "1st: -3 (P->M->J->G->D->A).\n2nd: +2 (C->E->G->I->K->M).\n3rd: -2 (O->M->K->I->G->E). In GIJ, 3rd letter is J instead of I (K-2=I). Thus GIJ is wrong.",
+                sH: "Antim letter me -2 hona chahiye tha: K-2=I hona chahiye par J likha hai (GIJ). Isliye GIJ galat hai."
+            }
+        ];
+
+        const state = {
+            current: 0,
+            answers: new Array(QUESTIONS.length).fill(null),
+            locked: new Array(QUESTIONS.length).fill(false),
+            mode: 'test',
+            lang: 'hi',
+            startTime: null,
+            timerInterval: null,
+            elapsed: 0
+        };
+
+        function $(id) { return document.getElementById(id); }
+
+        function toast(msg) {
+            const t = $('toast');
+            $('toastText').textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2000);
+        }
+
+        function formatTime(s) {
+            const m = Math.floor(s / 60);
+            return String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+        }
+
+        function startApp(mode) {
+            state.mode = mode;
+            $('startScreen').classList.add('hidden');
+            $('quizApp').classList.remove('hidden');
+            state.startTime = Date.now();
+            state.timerInterval = setInterval(() => {
+                state.elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+                $('timerText').textContent = formatTime(state.elapsed);
+            }, 1000);
+            renderQuestion();
+            buildPalette();
+        }
+
+        function toggleLang() {
+            state.lang = state.lang === 'en' ? 'hi' : 'en';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const i = state.current;
+            const q = QUESTIONS[i];
+            const isQuiz = state.mode === 'quiz';
+            const locked = state.locked[i];
+            const userAns = state.answers[i];
+            const qTxt = state.lang === 'en' ? q.e : q.h;
+            const opts = state.lang === 'en' ? q.oEn : q.oHi;
+
+            let optsHtml = '';
+            opts.forEach((opt, idx) => {
+                let cls = '', tag = '';
+                if (isQuiz && locked) {
+                    if (idx === q.a) {
+                        cls = 'correct';
+                        tag = '<span class="opt-tag">Correct</span>';
+                    }
+                    if (userAns === idx && idx !== q.a) {
+                        cls = 'wrong';
+                        tag = '<span class="opt-tag">Your Ans</span>';
+                    }
+                } else if (userAns === idx) {
+                    cls = 'selected';
+                }
+                optsHtml += `
+                    <div class="opt ${cls} ${locked ? 'locked' : ''}" onclick="selectOption(${idx})">
+                        <div class="opt-letter">${String.fromCharCode(65 + idx)}</div>
+                        <div class="opt-text">${opt}</div>
+                        ${tag}
+                    </div>
+                `;
+            });
+
+            const solTxt = state.lang === 'en' ? q.sE : q.sH;
+            let solHtml = (isQuiz && locked) ? `
+                <div class="sol-box">
+                    <div class="sol-head"><i class="fas fa-lightbulb"></i> Explanation</div>
+                    <div>${solTxt}</div>
+                </div>
+            ` : '';
+
+            $('quizMain').innerHTML = `
+                <div class="q-card">
+                    <div class="q-top">
+                        <div class="q-num-badge">Question ${i + 1} of ${QUESTIONS.length}</div>
+                        <button class="lang-btn" onclick="toggleLang()">
+                            <i class="fas fa-language"></i> ${state.lang === 'en' ? 'हिन्दी' : 'English'}
+                        </button>
+                    </div>
+                    <div class="q-text">${qTxt}</div>
+                    <div class="opts">${optsHtml}</div>
+                    ${solHtml}
+                </div>
+            `;
+
+            $('prevBtn').disabled = i === 0;
+            $('nextLabel').textContent = i === QUESTIONS.length - 1 ? 'Finish' : 'Next';
+            updatePaletteGrid();
+        }
+
+        function selectOption(idx) {
+            if (state.mode === 'quiz' && state.locked[state.current]) return;
+            state.answers[state.current] = idx;
+            if (state.mode === 'quiz') {
+                state.locked[state.current] = true;
+                if (idx === QUESTIONS[state.current].a) {
+                    toast('Correct! 🎉');
+                } else {
+                    toast('Incorrect');
+                }
+            }
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (state.current > 0) {
+                state.current--;
+                renderQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (state.current < QUESTIONS.length - 1) {
+                state.current++;
+                renderQuestion();
+            } else {
+                openSubmitModal();
+            }
+        }
+
+        function buildPalette() {
+            const grid = $('paletteGrid');
+            grid.innerHTML = '';
+            QUESTIONS.forEach((_, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'pal-btn';
+                btn.id = 'pal-' + i;
+                btn.textContent = i + 1;
+                btn.onclick = () => {
+                    state.current = i;
+                    closePalette();
+                    renderQuestion();
+                };
+                grid.appendChild(btn);
+            });
+            updatePaletteGrid();
+        }
+
+        function updatePaletteGrid() {
+            QUESTIONS.forEach((_, i) => {
+                const btn = $('pal-' + i);
+                if (!btn) return;
+                btn.className = 'pal-btn';
+                if (i === state.current) btn.classList.add('current');
+                if (state.answers[i] !== null) btn.classList.add('answered');
+            });
+        }
+
+        function openPalette() {
+            $('paletteDrawer').classList.add('open');
+            $('paletteOverlay').classList.add('open');
+        }
+
+        function closePalette() {
+            $('paletteDrawer').classList.remove('open');
+            $('paletteOverlay').classList.remove('open');
+        }
+
+        function openSubmitModal() {
+            const ans = state.answers.filter(a => a !== null).length;
+            $('modalAttempted').textContent = ans;
+            $('modalUnattempted').textContent = QUESTIONS.length - ans;
+            $('submitModal').classList.add('open');
+        }
+
+        function closeSubmitModal() {
+            $('submitModal').classList.remove('open');
+        }
+
+        function confirmSubmit() {
+            closeSubmitModal();
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            let correct = 0, wrong = 0;
+            state.answers.forEach((ans, i) => {
+                if (ans !== null) {
+                    if (ans === QUESTIONS[i].a) correct++;
+                    else wrong++;
+                }
+            });
+            $('resultsInner').innerHTML = `
+                <h2>Test Completed!</h2>
+                <p style="color:var(--text-muted);margin:8px 0;">Total Time: ${formatTime(state.elapsed)}</p>
+                <div class="res-score-card">
+                    <div class="res-score-val">${correct} / ${QUESTIONS.length}</div>
+                    <div>Score</div>
+                </div>
+                <div class="res-grid">
+                    <div class="res-item"><div class="res-item-val" style="color:var(--green)">${correct}</div><div>Correct</div></div>
+                    <div class="res-item"><div class="res-item-val" style="color:var(--red)">${wrong}</div><div>Wrong</div></div>
+                </div>
+                <button class="modal-btn confirm" onclick="location.reload()">Re-attempt</button>
+            `;
+            $('resultsScreen').classList.add('open');
+        }
+    </script>
+</body>
+</html>
